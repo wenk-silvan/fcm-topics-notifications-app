@@ -4,8 +4,9 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import java.util.*
 
-const val TAG: String = "NOTIFICATION"
+const val TAG: String = "Notification"
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
@@ -14,21 +15,30 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        // ...
-
-        // TODO(developer): Handle FCM messages here.
-        // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         Log.d(TAG, "From: ${remoteMessage.from}")
 
-        // Check if message contains a data payload.
+        var title = ""
+        var body = ""
+        var payload: Map<String, String>? = null
+
         if (remoteMessage.data.isNotEmpty()) {
             Log.d(TAG, "Message data payload: ${remoteMessage.data}")
-
+            payload = remoteMessage.data
         }
 
-        // Check if message contains a notification payload.
         remoteMessage.notification?.let {
+            Log.d(TAG, "Message Notification Title: ${it.title}")
             Log.d(TAG, "Message Notification Body: ${it.body}")
+            title = if (it.title == null) "" else it.title!!
+            body = if (it.body == null) "" else it.body!!
         }
+
+        Events.EVENTS.newNotification.postValue(
+            Events.EVENTS.NotificationEvent(
+                title,
+                body,
+                payload
+            )
+        )
     }
 }
